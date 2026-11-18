@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GTA 6 Browser</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+    #ytwrap {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
+    #player {
+      position: absolute;
+      inset: 0;
+    }
+    #player iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 56.25vw;
+      min-height: 100vh;
+      min-width: 177.78vh;
+      transform: translate(-50%, -50%);
+      border: 0;
+      pointer-events: none;
+    }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 10;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div id="ytwrap">
+    <div id="player"></div>
+  </div>
+  <div id="overlay"></div>
+  <script>
+    var VIDEO_ID = 'Aq5WXmQQooo';
+    var player = null;
+    var unlocked = false;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        width: '100%',
+        height: '100%',
+        videoId: VIDEO_ID,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          loop: 1,
+          playlist: VIDEO_ID,
+          fs: 0,
+          iv_load_policy: 3,
+          disablekb: 1,
+          cc_load_policy: 0,
+          origin: window.location.origin
+        },
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: function (e) {
+            if (e.data === YT.PlayerState.ENDED) {
+              player.playVideo();
+            }
+          }
+        }
+      });
+    }
+
+    function onPlayerReady() {
+      try {
+        player.unMute();
+        player.setVolume(100);
+        player.playVideo();
+      } catch (e) {}
+
+      setTimeout(function () {
+        var state = -1;
+        try { state = player.getPlayerState(); } catch (e) {}
+        if (state !== YT.PlayerState.PLAYING && state !== YT.PlayerState.BUFFERING) {
+          try {
+            player.mute();
+            player.playVideo();
+          } catch (e) {}
+        }
+      }, 400);
+    }
+
+    function goFullscreen() {
+      var el = document.documentElement;
+      var req = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (!req) return;
+      try {
+        var ret = req.call(el);
+        if (ret && typeof ret.catch === 'function') ret.catch(function () {});
+      } catch (e) {}
+    }
+
+    function onFirstInteraction() {
+      if (unlocked) return;
+      unlocked = true;
+      try {
+        if (player) {
+          player.unMute();
+          player.setVolume(100);
+          player.playVideo();
+        }
+      } catch (e) {}
+      goFullscreen();
+      var overlay = document.getElementById('overlay');
+      if (overlay) overlay.style.pointerEvents = 'none';
+    }
+
+    ['pointerdown', 'click', 'keydown', 'touchstart'].forEach(function (type) {
+      document.addEventListener(type, onFirstInteraction, true);
+    });
+
+    var tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  </script>
+</body>
+</html>
